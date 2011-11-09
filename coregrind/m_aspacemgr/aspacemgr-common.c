@@ -9,7 +9,7 @@
    This file is part of Valgrind, a dynamic binary instrumentation
    framework.
 
-   Copyright (C) 2006-2010 OpenWorks LLP
+   Copyright (C) 2006-2011 OpenWorks LLP
       info@open-works.co.uk
 
    This program is free software; you can redistribute it and/or
@@ -141,8 +141,8 @@ UInt ML_(am_sprintf) ( HChar* buf, const HChar *format, ... )
 
 //--------------------------------------------------------------
 // Direct access to a handful of syscalls.  This avoids dependence on
-// m_libc*.  THESE DO NOT UPDATE THE ANY aspacem-internal DATA
-// STRUCTURES (SEGMENT LISTS).  DO NOT USE THEM UNLESS YOU KNOW WHAT
+// m_libc*.  THESE DO NOT UPDATE THE aspacem-internal DATA
+// STRUCTURES (SEGMENT ARRAY).  DO NOT USE THEM UNLESS YOU KNOW WHAT
 // YOU ARE DOING.
 
 /* --- Pertaining to mappings --- */
@@ -160,7 +160,7 @@ SysRes VG_(am_do_mmap_NO_NOTIFY)( Addr start, SizeT length, UInt prot,
    res = VG_(do_syscall6)(__NR_mmap2, (UWord)start, length,
                           prot, flags, fd, offset / 4096);
 #  elif defined(VGP_amd64_linux) || defined(VGP_ppc64_linux) \
-        || defined(VGP_ppc32_aix5) || defined(VGP_ppc64_aix5)
+        || defined(VGP_s390x_linux)
    res = VG_(do_syscall6)(__NR_mmap, (UWord)start, length, 
                          prot, flags, fd, offset);
 #  elif defined(VGP_x86_darwin)
@@ -220,11 +220,8 @@ SysRes ML_(am_do_extend_mapping_NO_NOTIFY)(
              0/*flags, meaning: must be at old_addr, else FAIL */,
              0/*new_addr, is ignored*/
           );
-#  elif defined(VGO_aix5)
-   ML_(am_barf)("ML_(am_do_extend_mapping_NO_NOTIFY) on AIX5");
-   /* NOTREACHED, but gcc doesn't understand that */
-   return VG_(mk_SysRes_Error)(0);
 #  elif defined(VGO_freebsd)
+#warning Not implemented
    ML_(am_barf)("ML_(am_do_extend_mapping_NO_NOTIFY) on FreeBSD");
    /* NOTREACHED, but gcc doesn't understand that */
    return VG_(mk_SysRes_Error)(0);
@@ -249,10 +246,6 @@ SysRes ML_(am_do_relocate_nooverlap_mapping_NO_NOTIFY)(
              VKI_MREMAP_MAYMOVE|VKI_MREMAP_FIXED/*move-or-fail*/,
              new_addr
           );
-#  elif defined(VGO_aix5)
-   ML_(am_barf)("ML_(am_do_relocate_nooverlap_mapping_NO_NOTIFY) on AIX5");
-   /* NOTREACHED, but gcc doesn't understand that */
-   return VG_(mk_SysRes_Error)(0);
 #  elif defined(VGO_freebsd)
    ML_(am_barf)("ML_(am_do_relocate_nooverlap_mapping_NO_NOTIFY) on FreeBSD");
    /* NOTREACHED, but gcc doesn't understand that */
@@ -292,7 +285,7 @@ Int ML_(am_readlink)(HChar* path, HChar* buf, UInt bufsiz)
 
 Int ML_(am_fcntl) ( Int fd, Int cmd, Addr arg )
 {
-#  if defined(VGO_linux) || defined(VGO_aix5) || defined(VGO_freebsd)
+#  if defined(VGO_linux) || defined(VGO_freebsd)
    SysRes res = VG_(do_syscall3)(__NR_fcntl, fd, cmd, arg);
 #  elif defined(VGO_darwin)
    SysRes res = VG_(do_syscall3)(__NR_fcntl_nocancel, fd, cmd, arg);

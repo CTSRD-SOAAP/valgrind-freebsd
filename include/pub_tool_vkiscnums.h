@@ -7,9 +7,9 @@
    This file is part of Valgrind, a dynamic binary instrumentation
    framework.
 
-   Copyright (C) 2005-2010 Nicholas Nethercote
+   Copyright (C) 2005-2011 Nicholas Nethercote
       njn@valgrind.org
-   Copyright (C) 2006-2010 OpenWorks LLP
+   Copyright (C) 2006-2011 OpenWorks LLP
       info@open-works.co.uk
 
    This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@
 
 
 // This converts a syscall number into a string, suitable for printing.  It is
-// needed because some platforms (AIX, Darwin) munge sysnums in various ways.
+// needed because some platforms (Darwin) munge sysnums in various ways.
 // It is used in places where the sycall name will be printed alongside.
 extern Char* VG_(sysnum_string)      (Word sysnum, SizeT n_buf, Char* buf);
 
@@ -53,24 +53,10 @@ extern Char* VG_(sysnum_string_extra)(Word sysnum, SizeT n_buf, Char* buf);
    ({ Char qq_zz_buf[64]; VG_(sysnum_string_extra)(sysnum, 64, qq_zz_buf); })
 
 
-#if defined(VGO_linux)
-   // Nothing.
-
-#elif defined(VGO_freebsd)
+#if defined(VGO_freebsd)
    // See the FreeBSD-specific case in pub_tool_vkiscnums_asm.h for an
    // explanation of why we include this here rather than there.
 #  include "vki/vki-scnums-freebsd.h"
-
-#elif defined(VGO_aix5)
-   // See the AIX5-specific case in pub_tool_vkiscnums_asm.h for an
-   // explanation of why we include this here rather than there.
-#  include "vki/vki-scnums-aix5.h"
-
-#elif defined(VGO_darwin)
-   // Nothing.
-
-#else
-#  error Unknown OS
 #endif
 
 #endif   // __PUB_TOOL_VKISCNUMS_H

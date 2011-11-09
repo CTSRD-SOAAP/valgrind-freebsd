@@ -145,7 +145,7 @@ struct vki_sigcontext {
 	int	fpformat;
 	int	ownedfp;
 	int	spare1[1];
-	struct _vki_fpstate fpstate __aligned(16);
+	struct _vki_fpstate fpstate __attribute__((aligned(16)));
 	int	fsbase;
 	int	gsbase;
 	int	spare2[6];
@@ -215,7 +215,7 @@ struct vki_mcontext {
 	int	fpformat;
 	int	ownedfp;
 	int	spare1[1];
-	struct _vki_fpstate fpstate __aligned(16);
+	struct _vki_fpstate fpstate __attribute__((aligned(16)));
 	int	fsbase;
 	int	gsbase;
 	int	spare2[6];

@@ -1759,7 +1759,7 @@ struct vki_ptrace_io_desc {
 #define VKI_PIOD_READ_I		3
 #define VKI_PIOD_WRITE_I	4
 
-struct ptrace_lwpinfo {
+struct vki_ptrace_lwpinfo {
 	vki_lwpid_t	pl_lwpid;
 	int		pl_event;
 #define	VKI_PL_EVENT_NONE	0
