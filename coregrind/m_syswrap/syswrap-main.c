@@ -7,7 +7,7 @@
    This file is part of Valgrind, a dynamic binary instrumentation
    framework.
 
-   Copyright (C) 2000-2011 Julian Seward 
+   Copyright (C) 2000-2012 Julian Seward 
       jseward@acm.org
 
    This program is free software; you can redistribute it and/or
@@ -68,6 +68,7 @@
    ppc32  r0    r3   r4   r5   r6   r7   r8   n/a  n/a  r3+CR0.SO (== ARG1)
    ppc64  r0    r3   r4   r5   r6   r7   r8   n/a  n/a  r3+CR0.SO (== ARG1)
    arm    r7    r0   r1   r2   r3   r4   r5   n/a  n/a  r0        (== ARG1)
+   mips   v0    a0   a1   a2   a3 stack stack n/a  n/a  v0        (== NUM)
 
    FreeBSD:
    x86    eax +4   +8   +12  +16  +20  +24  +28  +32  edx:eax, eflags.c
@@ -565,6 +566,29 @@ void getSyscallArgsFromGuestState ( /*OUT*/SyscallArgs*       canonical,
    canonical->arg7  = 0;
    canonical->arg8  = 0;
 
+#elif defined(VGP_mips32_linux)
+   VexGuestMIPS32State* gst = (VexGuestMIPS32State*)gst_vanilla;
+   canonical->sysno = gst->guest_r2;    // v0
+   if (canonical->sysno != __NR_syscall) {
+      canonical->arg1  = gst->guest_r4;    // a0
+      canonical->arg2  = gst->guest_r5;    // a1
+      canonical->arg3  = gst->guest_r6;    // a2
+      canonical->arg4  = gst->guest_r7;    // a3
+      canonical->arg5  = *((UInt*) (gst->guest_r29 + 16));    // 16(guest_SP/sp)
+      canonical->arg6  = *((UInt*) (gst->guest_r29 + 20));    // 20(sp)
+      canonical->arg8 = 0;
+   } else {
+      // Fixme hack handle syscall()
+      canonical->sysno = gst->guest_r4;    // a0
+      canonical->arg1  = gst->guest_r5;    // a1
+      canonical->arg2  = gst->guest_r6;    // a2
+      canonical->arg3  = gst->guest_r7;    // a3
+      canonical->arg4  = *((UInt*) (gst->guest_r29 + 16));    // 16(guest_SP/sp)
+      canonical->arg5  = *((UInt*) (gst->guest_r29 + 20));    // 20(guest_SP/sp)
+      canonical->arg6  = *((UInt*) (gst->guest_r29 + 24));    // 24(guest_SP/sp)
+      canonical->arg8 = __NR_syscall;
+   }
+
 #elif defined(VGP_x86_darwin)
    VexGuestX86State* gst = (VexGuestX86State*)gst_vanilla;
    UWord *stack = (UWord *)gst->guest_ESP;
@@ -870,6 +894,27 @@ void putSyscallArgsIntoGuestState ( /*IN*/ SyscallArgs*       canonical,
    gst->guest_r6     = canonical->arg5;
    gst->guest_r7     = canonical->arg6;
 
+#elif defined(VGP_mips32_linux)
+   VexGuestMIPS32State* gst = (VexGuestMIPS32State*)gst_vanilla;
+   if (canonical->arg8 != __NR_syscall) {
+      gst->guest_r2 = canonical->sysno;
+      gst->guest_r4 = canonical->arg1;
+      gst->guest_r5 = canonical->arg2;
+      gst->guest_r6 = canonical->arg3;
+      gst->guest_r7 = canonical->arg4;
+      *((UInt*) (gst->guest_r29 + 16)) = canonical->arg5;    // 16(guest_GPR29/sp)
+      *((UInt*) (gst->guest_r29 + 20)) = canonical->arg6;    // 20(sp)
+   } else {
+      canonical->arg8 = 0;
+      gst->guest_r2 = __NR_syscall;
+      gst->guest_r4 = canonical->sysno;
+      gst->guest_r5 = canonical->arg1;
+      gst->guest_r6 = canonical->arg2;
+      gst->guest_r7 = canonical->arg3;
+      *((UInt*) (gst->guest_r29 + 16)) = canonical->arg4;    // 16(guest_GPR29/sp)
+      *((UInt*) (gst->guest_r29 + 20)) = canonical->arg5;    // 20(sp)
+      *((UInt*) (gst->guest_r29 + 24)) = canonical->arg6;    // 24(sp)
+   }
 #else
 #  error "putSyscallArgsIntoGuestState: unknown arch"
 #endif
@@ -924,6 +969,15 @@ void getSyscallStatusFromGuestState ( /*OUT*/SyscallStatus*     canonical,
    canonical->sres = VG_(mk_SysRes_amd64_freebsd)(gst->guest_RAX, gst->guest_RDX,
                         (flags & 1) != 0 ? True : False);
    canonical->what = SsComplete;
+
+#  elif defined(VGP_mips32_linux)
+   VexGuestMIPS32State* gst = (VexGuestMIPS32State*)gst_vanilla;
+   UInt                v0 = gst->guest_r2;    // v0
+   UInt                v1 = gst->guest_r3;    // v1
+   UInt                a3 = gst->guest_r7;    // a3
+   canonical->sres = VG_(mk_SysRes_mips32_linux)( v0, v1, a3 );
+   canonical->what = SsComplete;
+
 #  elif defined(VGP_x86_darwin)
    /* duplicates logic in m_signals.VG_UCONTEXT_SYSCALL_SYSRES */
    VexGuestX86State* gst = (VexGuestX86State*)gst_vanilla;
@@ -1194,6 +1248,24 @@ void putSyscallStatusIntoGuestState ( /*IN*/ ThreadId tid,
       gst->guest_r2 = sr_Res(canonical->sres);
    }
 
+#  elif defined(VGP_mips32_linux)
+   VexGuestMIPS32State* gst = (VexGuestMIPS32State*)gst_vanilla;
+   vg_assert(canonical->what == SsComplete);
+   if (sr_isError(canonical->sres)) {
+      gst->guest_r2 = (Int)sr_Err(canonical->sres);
+      gst->guest_r7 = (Int)sr_Err(canonical->sres);
+   } else {
+      gst->guest_r2 = sr_Res(canonical->sres);
+      gst->guest_r3 = sr_ResEx(canonical->sres);
+      gst->guest_r7 = (Int)sr_Err(canonical->sres);
+   }
+   VG_TRACK( post_reg_write, Vg_CoreSysCall, tid,
+             OFFSET_mips32_r2, sizeof(UWord) );
+   VG_TRACK( post_reg_write, Vg_CoreSysCall, tid,
+             OFFSET_mips32_r3, sizeof(UWord) );
+   VG_TRACK( post_reg_write, Vg_CoreSysCall, tid,
+             OFFSET_mips32_r7, sizeof(UWord) );
+
 #  else
 #    error "putSyscallStatusIntoGuestState: unknown arch"
 #  endif
@@ -1282,6 +1354,17 @@ void getSyscallArgLayout ( /*OUT*/SyscallArgLayout* layout )
    layout->o_arg4   = OFFSET_arm_R3;
    layout->o_arg5   = OFFSET_arm_R4;
    layout->o_arg6   = OFFSET_arm_R5;
+   layout->uu_arg7  = -1; /* impossible value */
+   layout->uu_arg8  = -1; /* impossible value */
+
+#elif defined(VGP_mips32_linux)
+   layout->o_sysno  = OFFSET_mips32_r2;
+   layout->o_arg1   = OFFSET_mips32_r4;
+   layout->o_arg2   = OFFSET_mips32_r5;
+   layout->o_arg3   = OFFSET_mips32_r6;
+   layout->o_arg4   = OFFSET_mips32_r7;
+   layout->s_arg5   = sizeof(UWord) * 4;
+   layout->s_arg6   = sizeof(UWord) * 5;
    layout->uu_arg7  = -1; /* impossible value */
    layout->uu_arg8  = -1; /* impossible value */
 
@@ -2187,10 +2270,44 @@ void ML_(fixup_guest_state_to_restart_syscall) ( ThreadArchState* arch )
 
       vg_assert(p[0] == 0x0A);
    }
+
+#elif defined(VGP_mips32_linux)
+
+   arch->vex.guest_PC -= 4;             // sizeof(mips instr)
+
+   /* Make sure our caller is actually sane, and we're really backing
+      back over a syscall.
+      
+      syscall == 00 00 00 0C 
+      big endian
+      syscall == 0C 00 00 00
+   */
+   {
+      UChar *p = (UChar *)(arch->vex.guest_PC);
+#     if defined (VG_LITTLEENDIAN)
+      if (p[0] != 0x0c || p[1] != 0x00 || p[2] != 0x00 || p[3] != 0x00)
+         VG_(message)(Vg_DebugMsg,
+                      "?! restarting over syscall at %#x %02x %02x %02x %02x\n",
+                      arch->vex.guest_PC, p[0], p[1], p[2], p[3]);
+
+      vg_assert(p[0] == 0x0c && p[1] == 0x00 && p[2] == 0x00 && p[3] == 0x00);
+#     elif defined (VG_BIGENDIAN)
+      if (p[0] != 0x00 || p[1] != 0x00 || p[2] != 0x00 || p[3] != 0x0c)
+         VG_(message)(Vg_DebugMsg,
+                      "?! restarting over syscall at %#x %02x %02x %02x %02x\n",
+                      arch->vex.guest_PC, p[0], p[1], p[2], p[3]);
+
+      vg_assert(p[0] == 0x00 && p[1] == 0x00 && p[2] == 0x00 && p[3] == 0x0c);
+#     else
+#        error "Unknown endianness"
+#     endif
+   }
+
 #else
 #  error "ML_(fixup_guest_state_to_restart_syscall): unknown plat"
 #endif
 }
+
 
 /* 
    Fix up the guest state when a syscall is interrupted by a signal
@@ -2202,7 +2319,7 @@ void ML_(fixup_guest_state_to_restart_syscall) ( ThreadArchState* arch )
 
      1. unblock signals
      2. perform syscall
-     3. save result to guest state (EAX, RAX, R3+CR0.SO)
+     3. save result to guest state (EAX, RAX, R3+CR0.SO, R0, V0)
      4. re-block signals
 
    If a signal

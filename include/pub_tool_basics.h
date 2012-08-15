@@ -7,7 +7,7 @@
    This file is part of Valgrind, a dynamic binary instrumentation
    framework.
 
-   Copyright (C) 2000-2011 Julian Seward 
+   Copyright (C) 2000-2012 Julian Seward 
       jseward@acm.org
 
    This program is free software; you can redistribute it and/or
@@ -165,6 +165,7 @@ typedef UInt ThreadId;
 typedef
    struct {
       UWord _val;
+      UWord _valEx;   // only used on mips-linux
       Bool  _isError;
    }
    SysRes;
@@ -205,6 +206,9 @@ static inline Bool sr_isError ( SysRes sr ) {
 }
 static inline UWord sr_Res ( SysRes sr ) {
    return sr._isError ? 0 : sr._val;
+}
+static inline UWord sr_ResEx ( SysRes sr ) {
+   return sr._isError ? 0 : sr._valEx;
 }
 static inline UWord sr_ResHI ( SysRes sr ) {
    return 0;
@@ -294,9 +298,11 @@ static inline Bool sr_EQ ( SysRes sr1, SysRes sr2 ) {
 #undef VG_BIGENDIAN
 #undef VG_LITTLEENDIAN
 
-#if defined(VGA_x86) || defined(VGA_amd64) || defined (VGA_arm)
+#if defined(VGA_x86) || defined(VGA_amd64) || defined (VGA_arm) \
+    || (defined(VGA_mips32) && defined (_MIPSEL))
 #  define VG_LITTLEENDIAN 1
-#elif defined(VGA_ppc32) || defined(VGA_ppc64) || defined(VGA_s390x)
+#elif defined(VGA_ppc32) || defined(VGA_ppc64) || defined(VGA_s390x) \
+      || (defined(VGA_mips32) && defined (_MIPSEB))
 #  define VG_BIGENDIAN 1
 #else
 #  error Unknown arch
@@ -306,7 +312,8 @@ static inline Bool sr_EQ ( SysRes sr1, SysRes sr2 ) {
 #if defined(VGA_x86)
 #  define VG_REGPARM(n)            __attribute__((regparm(n)))
 #elif defined(VGA_amd64) || defined(VGA_ppc32) \
-      || defined(VGA_ppc64) || defined(VGA_arm) || defined(VGA_s390x)
+      || defined(VGA_ppc64) || defined(VGA_arm) || defined(VGA_s390x) \
+      || defined(VGA_mips32)
 #  define VG_REGPARM(n)            /* */
 #else
 #  error Unknown arch

@@ -6,6 +6,7 @@
 # Shell scripts that should fail
 #----------------------------------------------------------------------------
 
+LC_ALL=C
 os=$(uname -s)
 if [ "${os}" != "FreeBSD" ]; then
 	echo "Execute a directory"

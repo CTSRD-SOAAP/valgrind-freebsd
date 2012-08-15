@@ -76,8 +76,10 @@ int main ( void )
    p = memalign(4095, 100);   assert(0 == (long)p % 4096);
    p = memalign(4096, 100);   assert(0 == (long)p % 4096);
    p = memalign(4097, 100);   assert(0 == (long)p % 8192);
-#endif
 
+   p = memalign(4 * 1024 * 1024, 100);   assert(0 == (long)p % (4 * 1024 * 1024));
+   p = memalign(16 * 1024 * 1024, 100);   assert(0 == (long)p % (16 * 1024 * 1024));
+#endif
 
 #  define PM(a,b,c) posix_memalign((void**)a, b, c)
 
@@ -91,15 +93,17 @@ int main ( void )
                               assert(0 == res && 0 == (long)p % sizeof(void*));
 
    res = PM(&p, 31, 100);     assert(EINVAL == res);
-   res = PM(&p, 32, 100);     assert(0 == res &&
-                                                 0 == (long)p % 32);
+   res = PM(&p, 32, 100);     assert(0 == res && 0 == (long)p % 32);
    res = PM(&p, 33, 100);     assert(EINVAL == res);
 
    res = PM(&p, 4095, 100);   assert(EINVAL == res);
-   res = PM(&p, 4096, 100);   assert(0 == res &&
-                                                 0 == (long)p % 4096); 
+   res = PM(&p, 4096, 100);   assert(0 == res && 0 == (long)p % 4096); 
    res = PM(&p, 4097, 100);   assert(EINVAL == res);
 
+   res = PM(&p, 4 * 1024 * 1024, 100);   assert(0 == res 
+                                                && 0 == (long)p % (4 * 1024 * 1024));
+   res = PM(&p, 16 * 1024 * 1024, 100);   assert(0 == res 
+                                                && 0 == (long)p % (16 * 1024 * 1024));
 #endif
 #  endif
    

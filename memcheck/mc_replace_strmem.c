@@ -9,7 +9,7 @@
    This file is part of MemCheck, a heavyweight Valgrind tool for
    detecting memory errors.
 
-   Copyright (C) 2000-2011 Julian Seward 
+   Copyright (C) 2000-2012 Julian Seward 
       jseward@acm.org
 
    This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@
 */
 
 #include "pub_tool_basics.h"
+#include "pub_tool_poolalloc.h"
 #include "pub_tool_hashtable.h"
 #include "pub_tool_redir.h"
 #include "pub_tool_tooliface.h"
@@ -94,6 +95,7 @@
    20330 STRCSPN
    20340 STRSPN
    20350 STRCASESTR
+   20360 MEMRCHR
 */
 
 
@@ -140,6 +142,9 @@ static inline void my_exit ( int x )
 #  if defined(VGPV_arm_linux_android)
    __asm__ __volatile__(".word 0xFFFFFFFF");
    while (1) {}
+#  elif defined(VGPV_x86_linux_android)
+   __asm__ __volatile__("ud2");
+   while (1) {}
 #  else
    extern __attribute__ ((__noreturn__)) void _exit(int status);
    _exit(x);
@@ -177,6 +182,9 @@ static inline void my_exit ( int x )
  STRRCHR(VG_Z_LIBC_SONAME,   rindex)
  STRRCHR(VG_Z_LIBC_SONAME,   __GI_strrchr)
  STRRCHR(VG_Z_LD_LINUX_SO_2, rindex)
+#if defined(VGPV_arm_linux_android) || defined(VGPV_x86_linux_android)
+  STRRCHR(NONE, __dl_strrchr); /* in /system/bin/linker */
+#endif
 
 #elif defined(VGO_freebsd)
  STRRCHR(VG_Z_LIBC_SONAME,   strrchr)
@@ -414,7 +422,7 @@ static inline void my_exit ( int x )
 #if defined(VGO_linux)
  STRLEN(VG_Z_LIBC_SONAME,          strlen)
  STRLEN(VG_Z_LIBC_SONAME,          __GI_strlen)
-# if defined(VGPV_arm_linux_android)
+# if defined(VGPV_arm_linux_android) || defined(VGPV_x86_linux_android)
   STRLEN(NONE, __dl_strlen); /* in /system/bin/linker */
 # endif
 
@@ -540,6 +548,10 @@ static inline void my_exit ( int x )
 
 #if defined(VGO_linux)
 
+#if defined(VGPV_arm_linux_android) || defined(VGPV_x86_linux_android)
+ STRLCPY(VG_Z_LIBC_SONAME, strlcpy);
+#endif
+
 #elif defined(VGO_freebsd)
  STRLCPY(VG_Z_LD_ELF_SO_1, strlcpy)
  STRLCPY(VG_Z_LD_ELF32_SO_1, strlcpy)
@@ -616,7 +628,7 @@ static inline void my_exit ( int x )
    }
 
 #if defined(VGO_linux)
-# if !defined(VGPV_arm_linux_android)
+# if !defined(VGPV_arm_linux_android) && !defined(VGPV_x86_linux_android)
   STRCASECMP(VG_Z_LIBC_SONAME, strcasecmp)
   STRCASECMP(VG_Z_LIBC_SONAME, __GI_strcasecmp)
 # endif
@@ -653,7 +665,7 @@ static inline void my_exit ( int x )
    }
 
 #if defined(VGO_linux)
-# if !defined(VGPV_arm_linux_android)
+# if !defined(VGPV_arm_linux_android) && !defined(VGPV_x86_linux_android)
   STRNCASECMP(VG_Z_LIBC_SONAME, strncasecmp)
   STRNCASECMP(VG_Z_LIBC_SONAME, __GI_strncasecmp)
 # endif
@@ -727,6 +739,7 @@ static inline void my_exit ( int x )
 #if defined(VGO_linux)
  STRNCASECMP_L(VG_Z_LIBC_SONAME, strncasecmp_l)
  STRNCASECMP_L(VG_Z_LIBC_SONAME, __GI_strncasecmp_l)
+ STRNCASECMP_L(VG_Z_LIBC_SONAME, __GI___strncasecmp_l)
 
 #elif defined(VGO_darwin)
  //STRNCASECMP_L(VG_Z_LIBC_SONAME, strncasecmp_l)
@@ -766,7 +779,7 @@ static inline void my_exit ( int x )
  STRCMP(VG_Z_LIBC_SONAME, strcmp)
  STRCMP(VG_Z_LD_ELF_SO_1, strcmp)
  STRCMP(VG_Z_LD_ELF32_SO_1, strcmp)
-# if defined(VGPV_arm_linux_android)
+# if defined(VGPV_arm_linux_android) || defined(VGPV_x86_linux_android)
   STRCMP(NONE, __dl_strcmp); /* in /system/bin/linker */
 # endif
 
@@ -804,6 +817,35 @@ static inline void my_exit ( int x )
 #elif defined(VGO_darwin)
  //MEMCHR(VG_Z_LIBC_SONAME, memchr)
  //MEMCHR(VG_Z_DYLD,        memchr)
+
+#endif
+
+
+/*---------------------- memrchr ----------------------*/
+
+#define MEMRCHR(soname, fnname) \
+   void* VG_REPLACE_FUNCTION_EZU(20360,soname,fnname) \
+            (const void *s, int c, SizeT n); \
+   void* VG_REPLACE_FUNCTION_EZU(20360,soname,fnname) \
+            (const void *s, int c, SizeT n) \
+   { \
+      SizeT i; \
+      UChar c0 = (UChar)c; \
+      UChar* p = (UChar*)s; \
+      for (i = 0; i < n; i++) \
+         if (p[n-1-i] == c0) return (void*)(&p[n-1-i]); \
+      return NULL; \
+   }
+
+#if defined(VGO_linux)
+ MEMRCHR(VG_Z_LIBC_SONAME, memrchr)
+
+#elif defined(VGO_freebsd)
+ MEMRCHR(VG_Z_LIBC_SONAME, memrchr)
+
+#elif defined(VGO_darwin)
+ //MEMRCHR(VG_Z_LIBC_SONAME, memrchr)
+ //MEMRCHR(VG_Z_DYLD,        memrchr)
 
 #endif
 
@@ -913,8 +955,9 @@ static inline void my_exit ( int x )
  MEMCPY(VG_Z_LD_ELF32_SO_1, memcpy)
 
 #elif defined(VGO_darwin)
- //MEMCPY(VG_Z_LIBC_SONAME,  memcpy)
- //MEMCPY(VG_Z_DYLD,         memcpy)
+# if DARWIN_VERS <= DARWIN_10_6
+  MEMCPY(VG_Z_LIBC_SONAME,  memcpy)
+# endif
  MEMCPY(VG_Z_LIBC_SONAME,  memcpyZDVARIANTZDsse3x) /* memcpy$VARIANT$sse3x */
  MEMCPY(VG_Z_LIBC_SONAME,  memcpyZDVARIANTZDsse42) /* memcpy$VARIANT$sse42 */
 
@@ -1064,8 +1107,9 @@ static inline void my_exit ( int x )
  MEMMOVE(VG_Z_LIBC_SONAME, memmove)
 
 #elif defined(VGO_darwin)
- //MEMMOVE(VG_Z_LIBC_SONAME, memmove)
- //MEMMOVE(VG_Z_DYLD,        memmove)#
+# if DARWIN_VERS <= DARWIN_10_6
+  MEMMOVE(VG_Z_LIBC_SONAME, memmove)
+# endif
  MEMMOVE(VG_Z_LIBC_SONAME,  memmoveZDVARIANTZDsse3x) /* memmove$VARIANT$sse3x */
  MEMMOVE(VG_Z_LIBC_SONAME,  memmoveZDVARIANTZDsse42) /* memmove$VARIANT$sse42 */
 
@@ -1581,7 +1625,7 @@ static inline void my_exit ( int x )
    }
 
 #if defined(VGO_linux)
-# if !defined(VGPV_arm_linux_android)
+# if !defined(VGPV_arm_linux_android) && !defined(VGPV_x86_linux_android)
   STRCASESTR(VG_Z_LIBC_SONAME,      strcasestr)
 # endif
 

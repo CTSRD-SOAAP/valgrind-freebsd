@@ -1337,23 +1337,102 @@ union vki_semun {
 //----------------------------------------------------------------------
 
 #define VKI_ERESTART	-1
-#define	VKI_EPERM		 1	/* Operation not permitted */
-#define	VKI_ENOENT		 2	/* No such file or directory */
-#define	VKI_ESRCH		 3	/* No such process */
-#define	VKI_EINTR		 4	/* Interrupted system call */
-#define VKI_ENOEXEC              8      /* Exec format error */
-#define	VKI_EBADF		 9	/* Bad file number */
-#define VKI_ECHILD              10      /* No child processes */
-#define	VKI_ENOMEM		12	/* Out of memory */
-#define	VKI_EACCES		13	/* Permission denied */
-#define	VKI_EFAULT		14	/* Bad address */
-#define	VKI_EEXIST		17	/* File exists */
-#define	VKI_EINVAL		22	/* Invalid argument */
-#define	VKI_EMFILE		24	/* Too many open files */
-#define VKI_EAGAIN		35	/* Try again */
-#define VKI_EOVERFLOW           84      /* Value too large for defined data type */
-#define VKI_EWOULDBLOCK		VKI_EAGAIN
-#define	VKI_ENOSYS		78	/* Function not implemented */
+#define VKI_EPERM           1               /* Operation not permitted */
+#define VKI_ENOENT          2               /* No such file or directory */
+#define VKI_ESRCH           3               /* No such process */
+#define VKI_EINTR           4               /* Interrupted system call */
+#define VKI_EIO             5               /* Input/output error */
+#define VKI_ENXIO           6               /* Device not configured */
+#define VKI_E2BIG           7               /* Argument list too long */
+#define VKI_ENOEXEC         8               /* Exec format error */
+#define VKI_EBADF           9               /* Bad file descriptor */
+#define VKI_ECHILD          10              /* No child processes */
+#define VKI_EDEADLK         11              /* Resource deadlock avoided */
+#define VKI_ENOMEM          12              /* Cannot allocate memory */
+#define VKI_EACCES          13              /* Permission denied */
+#define VKI_EFAULT          14              /* Bad address */
+#define VKI_ENOTBLK         15              /* Block device required */
+#define VKI_EBUSY           16              /* Device busy */
+#define VKI_EEXIST          17              /* File exists */
+#define VKI_EXDEV           18              /* Cross-device link */
+#define VKI_ENODEV          19              /* Operation not supported by device */
+#define VKI_ENOTDIR         20              /* Not a directory */
+#define VKI_EISDIR          21              /* Is a directory */
+#define VKI_EINVAL          22              /* Invalid argument */
+#define VKI_ENFILE          23              /* Too many open files in system */
+#define VKI_EMFILE          24              /* Too many open files */
+#define VKI_ENOTTY          25              /* Inappropriate ioctl for device */
+#define VKI_ETXTBSY         26              /* Text file busy */
+#define VKI_EFBIG           27              /* File too large */
+#define VKI_ENOSPC          28              /* No space left on device */
+#define VKI_ESPIPE          29              /* Illegal seek */
+#define VKI_EROFS           30              /* Read-only filesystem */
+#define VKI_EMLINK          31              /* Too many links */
+#define VKI_EPIPE           32              /* Broken pipe */
+#define VKI_EDOM            33              /* Numerical argument out of domain */
+#define VKI_ERANGE          34              /* Result too large */
+#define VKI_EAGAIN          35              /* Resource temporarily unavailable */
+#define VKI_EWOULDBLOCK     VKI_EAGAIN          /* Operation would block */
+#define VKI_EINPROGRESS     36              /* Operation now in progress */
+#define VKI_EALREADY        37              /* Operation already in progress */
+#define VKI_ENOTSOCK        38              /* Socket operation on non-socket */
+#define VKI_EDESTADDRREQ    39              /* Destination address required */
+#define VKI_EMSGSIZE        40              /* Message too long */
+#define VKI_EPROTOTYPE      41              /* Protocol wrong type for socket */
+#define VKI_ENOPROTOOPT     42              /* Protocol not available */
+#define VKI_EPROTONOSUPPORT 43              /* Protocol not supported */
+#define VKI_ESOCKTNOSUPPORT 44              /* Socket type not supported */
+#define VKI_EOPNOTSUPP      45              /* Operation not supported */
+#define VKI_ENOTSUP         VKI_EOPNOTSUPP      /* Operation not supported */
+#define VKI_EPFNOSUPPORT    46              /* Protocol family not supported */
+#define VKI_EAFNOSUPPORT    47              /* Address family not supported by protocol family */
+#define VKI_EADDRINUSE      48              /* Address already in use */
+#define VKI_EADDRNOTAVAIL   49
+#define VKI_ENETDOWN        50              /* Network is down */
+#define VKI_ENETUNREACH     51              /* Network is unreachable */
+#define VKI_ENETRESET       52              /* Network dropped connection on reset */
+#define VKI_ECONNABORTED    53              /* Software caused connection abort */
+#define VKI_ECONNRESET      54              /* Connection reset by peer */
+#define VKI_ENOBUFS         55              /* No buffer space available */
+#define VKI_EISCONN         56              /* Socket is already connected */
+#define VKI_ENOTCONN        57              /* Socket is not connected */
+#define VKI_ESHUTDOWN       58              /* Can't send after socket shutdown */
+#define VKI_ETOOMANYREFS    59              /* Too many references: can't splice */
+#define VKI_ETIMEDOUT       60              /* Operation timed out */
+#define VKI_ECONNREFUSED    61              /* Connection refused */
+#define VKI_ELOOP           62              /* Too many levels of symbolic links */
+#define VKI_ENAMETOOLONG    63              /* File name too long */
+#define VKI_EHOSTDOWN       64              /* Host is down */
+#define VKI_EHOSTUNREACH    65              /* No route to host */
+#define VKI_ENOTEMPTY       66              /* Directory not empty */
+#define VKI_EPROCLIM        67              /* Too many processes */
+#define VKI_EUSERS          68              /* Too many users */
+#define VKI_EDQUOT          69              /* Disc quota exceeded */
+#define VKI_ESTALE          70              /* Stale NFS file handle */
+#define VKI_EREMOTE         71              /* Too many levels of remote in path */
+#define VKI_EBADRPC         72              /* RPC struct is bad */
+#define VKI_ERPCMISMATCH    73              /* RPC version wrong */
+#define VKI_EPROGUNAVAIL    74              /* RPC prog. not avail */
+#define VKI_EPROGMISMATCH   75              /* Program version wrong */
+#define VKI_EPROCUNAVAIL    76              /* Bad procedure for program */
+#define VKI_ENOLCK          77              /* No locks available */
+#define VKI_ENOSYS          78              /* Function not implemented */
+#define VKI_EFTYPE          79              /* Inappropriate file type or format */
+#define VKI_EAUTH           80              /* Authentication error */
+#define VKI_ENEEDAUTH       81              /* Need authenticator */
+#define VKI_EIDRM           82              /* Identifier removed */
+#define VKI_ENOMSG          83              /* No message of desired type */
+#define VKI_EOVERFLOW       84              /* Value too large to be stored in data type */
+#define VKI_ECANCELED       85              /* Operation canceled */
+#define VKI_EILSEQ          86              /* Illegal byte sequence */
+#define VKI_ENOATTR         87              /* Attribute not found */
+#define VKI_EDOOFUS         88              /* Programming error */
+#define VKI_EBADMSG         89              /* Bad message */
+#define VKI_EMULTIHOP       90              /* Multihop attempted */
+#define VKI_ENOLINK         91              /* Link has been severed */
+#define VKI_EPROTO          92              /* Protocol error */
+#define VKI_ENOTCAPABLE     93              /* Capabilities insufficient */
+#define VKI_ECAPMODE        94              /* Not permitted in capability mode */
 
 //----------------------------------------------------------------------
 // From sys/wait.h

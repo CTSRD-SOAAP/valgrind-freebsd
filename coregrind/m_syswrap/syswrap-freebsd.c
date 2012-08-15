@@ -502,7 +502,7 @@ PRE(sys_sendmsg)
    PRINT("sys_sendmsg ( %ld, %#lx, %ld )",ARG1,ARG2,ARG3);
    PRE_REG_READ3(long, "sendmsg",
                  int, s, const struct msghdr *, msg, int, flags);
-   ML_(generic_PRE_sys_sendmsg)(tid, ARG1,ARG2);
+   ML_(generic_PRE_sys_sendmsg)(tid, "sendmsg", (struct vki_msghdr *)ARG2);
 }
 
 PRE(sys_recvmsg)
@@ -510,11 +510,12 @@ PRE(sys_recvmsg)
    *flags |= SfMayBlock;
    PRINT("sys_recvmsg ( %ld, %#lx, %ld )",ARG1,ARG2,ARG3);
    PRE_REG_READ3(long, "recvmsg", int, s, struct msghdr *, msg, int, flags);
-   ML_(generic_PRE_sys_recvmsg)(tid, ARG1,ARG2);
+   ML_(generic_PRE_sys_recvmsg)(tid, "recvmsg", (struct vki_msghdr *)ARG2);
 }
 POST(sys_recvmsg)
 {
-   ML_(generic_POST_sys_recvmsg)(tid, ARG1,ARG2);
+
+   ML_(generic_POST_sys_recvmsg)(tid, "recvmsg", (struct vki_msghdr *)ARG2, RES);
 }
 
 PRE(sys_shutdown)
@@ -3803,8 +3804,8 @@ const SyscallTableEntry ML_(syscall_table)[] = {
 // BSDXY(__NR_shmsys,			sys_shmsys),			// 171
 
    // nosys								   172
-   BSDXY(__NR_pread,			sys_pread),			// 173
-   BSDX_(__NR_pwrite,			sys_pwrite),			// 174
+   BSDXY(__NR_pread6,			sys_pread),			// 173
+   BSDX_(__NR_pwrite6,			sys_pwrite),			// 174
    // nosys								   175
 
 // BSDXY(__NR_ntp_adjtime,		sys_ntp_adjtime),		// 176
@@ -4180,9 +4181,9 @@ const SyscallTableEntry ML_(syscall_table)[] = {
    // sctp_generic_sendmsg						   472
    // sctp_generic_sendmsg_iov						   473
    // sctp_generic_recvmsg						   474
-   BSDXY(__NR_pread7,			sys_pread7),			// 475
+   BSDXY(__NR_pread,			sys_pread7),			// 475
 
-   BSDX_(__NR_pwrite7,			sys_pwrite7),			// 476
+   BSDX_(__NR_pwrite,			sys_pwrite7),			// 476
    BSDX_(__NR_mmap,			sys_mmap7),			// 477
    BSDX_(__NR_lseek,			sys_lseek7),			// 478
    BSDX_(__NR_truncate7,		sys_truncate7),			// 479

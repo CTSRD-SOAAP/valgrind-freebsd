@@ -13,7 +13,9 @@ nobase_pkginclude_HEADERS = \
 	pub_tool_errormgr.h 		\
 	pub_tool_execontext.h 		\
 	pub_tool_gdbserver.h 		\
+	pub_tool_poolalloc.h 		\
 	pub_tool_hashtable.h 		\
+	pub_tool_inner.h 		\
 	pub_tool_libcbase.h 		\
 	pub_tool_libcassert.h 		\
 	pub_tool_libcfile.h 		\
@@ -48,6 +50,7 @@ nobase_pkginclude_HEADERS = \
 	vki/vki-posixtypes-x86-linux.h	 \
 	vki/vki-posixtypes-arm-linux.h	 \
 	vki/vki-posixtypes-s390x-linux.h \
+	vki/vki-posixtypes-mips32-linux.h \
 	vki/vki-amd64-linux.h		\
 	vki/vki-ppc32-linux.h		\
 	vki/vki-ppc64-linux.h		\
@@ -56,6 +59,7 @@ nobase_pkginclude_HEADERS = \
 	vki/vki-x86-freebsd.h		\
 	vki/vki-arm-linux.h		\
 	vki/vki-s390x-linux.h		\
+	vki/vki-mips32-linux.h		\
 	vki/vki-scnums-amd64-linux.h	\
 	vki/vki-scnums-ppc32-linux.h	\
 	vki/vki-scnums-ppc64-linux.h	\
@@ -63,4 +67,5 @@ nobase_pkginclude_HEADERS = \
 	vki/vki-scnums-freebsd.h	\
 	vki/vki-scnums-arm-linux.h	\
 	vki/vki-scnums-s390x-linux.h	\
+	vki/vki-scnums-mips32-linux.h	\
 	vki/vki-scnums-darwin.h

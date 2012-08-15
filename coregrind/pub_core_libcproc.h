@@ -7,7 +7,7 @@
    This file is part of Valgrind, a dynamic binary instrumentation
    framework.
 
-   Copyright (C) 2000-2011 Julian Seward
+   Copyright (C) 2000-2012 Julian Seward
       jseward@acm.org
 
    This program is free software; you can redistribute it and/or
@@ -91,6 +91,9 @@ extern Int VG_(sysctlbyname)(const Char *name, void *oldp, vki_size_t *oldlenp, 
 extern Int VG_(getosreldate)(void);
 extern Bool VG_(is32on64)(void);
 #endif
+
+// icache invalidation
+extern void VG_(invalidate_icache) ( void *ptr, SizeT nbytes );
 
 #endif   // __PUB_CORE_LIBCPROC_H
 

@@ -7,7 +7,7 @@
    This file is part of Valgrind, a dynamic binary instrumentation
    framework.
 
-   Copyright (C) 2000-2011 Julian Seward
+   Copyright (C) 2000-2012 Julian Seward
       jseward@acm.org
 
    This program is free software; you can redistribute it and/or
@@ -82,6 +82,7 @@ typedef Int ArenaId;
       defined(VGP_x86_freebsd) || \
       defined(VGP_amd64_freebsd) || \
       defined(VGP_s390x_linux) || \
+      defined(VGP_mips32_linux) || \
       defined(VGP_x86_darwin)  || \
       defined(VGP_amd64_darwin)
 #  define VG_MIN_MALLOC_SZB       16

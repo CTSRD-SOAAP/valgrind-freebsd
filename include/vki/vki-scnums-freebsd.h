@@ -150,8 +150,8 @@
 #define	__NR_semsys		169
 #define	__NR_msgsys		170
 #define	__NR_shmsys		171
-#define	__NR_pread		173
-#define	__NR_pwrite		174
+#define	__NR_pread6		173
+#define	__NR_pwrite6		174
 #define	__NR_ntp_adjtime	176
 #define	__NR_setgid		181
 #define	__NR_setegid		182
@@ -375,8 +375,8 @@
 #define	__NR_sctp_generic_sendmsg	472
 #define	__NR_sctp_generic_sendmsg_iov	473
 #define	__NR_sctp_generic_recvmsg	474
-#define	__NR_pread7		475
-#define	__NR_pwrite7		476
+#define	__NR_pread		475
+#define	__NR_pwrite		476
 #define	__NR_mmap		477
 #define	__NR_lseek		478
 #define	__NR_truncate7		479
